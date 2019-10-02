@@ -1,0 +1,30 @@
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  image: java:8
+  stage: build
+  script:
+    - ./gradlew build -x test
+
+    
+test:
+  stage: test
+  image: java:8
+  script:
+  - ./gradlew test || true
+  
+github_deploy:
+   stage: deploy
+   image: sirmc/latex-build
+   script:
+   - 'eval $(ssh-agent -s)'
+   - ssh-add <(echo "$GITHUB_KEY")
+   - mkdir -p ~/.ssh
+   - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+   - git remote add github git@github.com:VU-Programming/IJVM-Skeleton.git || true
+   - git push github master
+   only:
+   - master
